@@ -1,0 +1,115 @@
+Parameters:
+  EnvironmentName:
+    Description: Environment Name for all resources
+    Type: String
+  VPCCIDR:
+    Description: CIDR for VPC
+    Type: String
+    Default: 10.0.0.0/16
+  PublicSubnetCIDR:
+    Description: CIDR for public subnet
+    Type: String
+  PrivateSubnetCIDR:
+    Description: CIDR for private subnet
+    Type: String
+
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VPCCIDR
+      Tags:
+        - Key: Name
+          Value: !Ref EnvironmentName
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Ref EnvironmentName
+  AttachInternetGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties: 
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties: 
+      AvailabilityZone: "us-east-1a"
+      CidrBlock: !Ref PublicSubnetCIDR
+      MapPublicIpOnLaunch: true
+      Tags: 
+        - Key: Name
+          Value: "Public Subnet MyInfra01"
+      VpcId: !Ref VPC
+  PrivateSubnet:
+    Type: AWS::EC2::Subnet
+    Properties: 
+      AvailabilityZone: "us-east-1b"
+      CidrBlock: !Ref PrivateSubnetCIDR
+      MapPublicIpOnLaunch: false
+      Tags: 
+        - Key: Name
+          Value: "Private Subnet MyInfra01"
+      VpcId: !Ref VPC
+  NATGateway:
+    Type: AWS::EC2::NatGateway
+    Properties: 
+      AllocationId:
+        Fn::GetAtt:
+        - EIP
+        - AllocationId
+      SubnetId: !Ref PublicSubnet
+      Tags: 
+        - Key: Name
+          Value: "Nat to be used by servers in the private subnet MyInfra01"
+  EIP:
+    Type: AWS::EC2::EIP
+    Properties: 
+      Tags: 
+        - Key: Name
+          Value: "Elastic IP for our NAT Gateway MyInfra01"
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties: 
+      Tags: 
+        - Key: Name
+          Value: "Private Route Table MyInfra01"
+      VpcId: !Ref VPC
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties: 
+      Tags: 
+        - Key: Name
+          Value: "Public Route Table MyInfra01"
+      VpcId: !Ref VPC
+  AssociatePUBRT:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: 
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet
+  AssociatePRIVRT:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: 
+      RouteTableId: !Ref PrivateRouteTable
+      SubnetId: !Ref PrivateSubnet
+  PublicInternetGatewayRoute:
+    Type: AWS::EC2::Route
+    Properties: 
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+      RouteTableId: !Ref PublicRouteTable
+  PrivateNATGatewayRoute:
+    Type: AWS::EC2::Route
+    Properties: 
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NATGateway
+      RouteTableId: !Ref PrivateRouteTable
+
+
+
+
+
+
+      
+

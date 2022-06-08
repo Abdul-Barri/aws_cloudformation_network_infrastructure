@@ -1,0 +1,13 @@
+VPC, type: AWS::EC2::VPC
+InternetGateway, type: AWS::EC2::InternetGateway
+AttachInternetGateway, type: AWS::EC2::VPCGatewayAttachment
+PublicSubnet1, type: AWS::EC2::Subnet
+PrivateSubnet1, type: AWS::EC2::Subnet
+NAT, type: AWS::EC2::NatGateway
+EIP, type: AWS::EC2::EIP
+PrivateRouteTable, type: AWS::EC2::RouteTable
+PublicRouteTable, type: AWS::EC2::RouteTable
+AssociatePUBRT, type: AWS::EC2::SubnetRouteTableAssociation
+AssociatePRIVRT, type: AWS::EC2::SubnetRouteTableAssociation
+PublicInternetRoute, type: AWS::EC2::Route
+PrivateInternetOutboundRoute, type: AWS::EC2::Route
